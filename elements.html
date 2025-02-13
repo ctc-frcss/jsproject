@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Element Electron Distribution</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        #elementDisplay {
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: 50%;
+            position: relative;
+            height: 300px;
+            background-color: black; /* Set background color to black */
+        }
+        #control {
+            margin: 20px;
+        }
+        #inputForm {
+            margin-top: 20px;
+        }
+        .electron {
+            height: 10px;
+            width: 10px;
+            background-color: red; /* Set electron color to red */
+            border-radius: 50%;
+            position: absolute;
+        }
+        .shell {
+            border: 2px dashed white; /* Set electron shell circle color to white */
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+        #symbol {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: white; /* Set symbol color to white */
+        }
+    </style>
+</head>
+<body>
+    <div id="elementDisplay">
+        <div id="symbol">Element Symbol</div>
+        <div id="electronDistribution"></div>
+    </div>
+
+    <div id="control">
+        <label for="slider">Control Slider (1-20): </label>
+        <input type="range" id="slider" min="1" max="20" value="1" onchange="updateElement()">
+        <div id="elementAbbreviation"></div>
+    </div>
+
+    <div id="inputForm">
+        <input type="text" id="elementInput" placeholder="Enter Element Name" required>
+        <button onclick="checkInput()">Confirm</button>
+        <div id="feedback"></div>
+    </div>
+
+    <script>
+        const elements = [
+            { name: 'Hydrogen', abbreviation: 'H', electrons: [1] },
+            { name: 'Helium', abbreviation: 'He', electrons: [2] },
+            { name: 'Lithium', abbreviation: 'Li', electrons: [2, 1] },
+            { name: 'Beryllium', abbreviation: 'Be', electrons: [2, 2] },
+            { name: 'Boron', abbreviation: 'B', electrons: [2, 3] },
+            { name: 'Carbon', abbreviation: 'C', electrons: [2, 4] },
+            { name: 'Nitrogen', abbreviation: 'N', electrons: [2, 5] },
+            { name: 'Oxygen', abbreviation: 'O', electrons: [2, 6] },
+            { name: 'Fluorine', abbreviation: 'F', electrons: [2, 7] },
+            { name: 'Neon', abbreviation: 'Ne', electrons: [2, 8] },
+            { name: 'Sodium', abbreviation: 'Na', electrons: [2, 8, 1] },
+            { name: 'Magnesium', abbreviation: 'Mg', electrons: [2, 8, 2] },
+            { name: 'Aluminum', abbreviation: 'Al', electrons: [2, 8, 3] },
+            { name: 'Silicon', abbreviation: 'Si', electrons: [2, 8, 4] },
+            { name: 'Phosphorus', abbreviation: 'P', electrons: [2, 8, 5] },
+            { name: 'Sulfur', abbreviation: 'S', electrons: [2, 8, 6] },
+            { name: 'Chlorine', abbreviation: 'Cl', electrons: [2, 8, 7] },
+            { name: 'Argon', abbreviation: 'Ar', electrons: [2, 8, 8] },
+            { name: 'Potassium', abbreviation: 'K', electrons: [2, 8, 8, 1] },
+            { name: 'Calcium', abbreviation: 'Ca', electrons: [2, 8, 8, 2] },
+            { name: 'Titanium', abbreviation: 'Ti', electrons: [2, 8, 10, 2] }
+        ];
+
+        function updateElement() {
+            const sliderValue = document.getElementById('slider').value;
+            const element = elements[sliderValue - 1];
+            document.getElementById('symbol').innerText = element.abbreviation;
+            document.getElementById('elementAbbreviation').innerText = element.abbreviation;
+            displayElectrons(element.electrons);
+        }
+
+        function displayElectrons(electrons) {
+            const electronDistribution = document.getElementById('electronDistribution');
+            electronDistribution.innerHTML = '';
+            const radius = 50; // Outer ring radius
+            electrons.forEach((count, index) => {
+                // Create an electron shell circle
+                const shell = document.createElement('div');
+                shell.className = 'shell';
+                shell.style.width = `${(index + 1) * radius * 2}px`; // Diameter of outer shell
+                shell.style.height = `${(index + 1) * radius * 2}px`; // Diameter of outer shell
+                electronDistribution.appendChild(shell);
+
+                const angleIncrement = (2 * Math.PI) / count; // Angle increment for each electron
+                for (let i = 0; i < count; i++) {
+                    const electron = document.createElement('div');
+                    electron.className = 'electron';
+                    
+                    const angle = i * angleIncrement; // Current electron's angle
+                    const x = (index + 1) * radius * Math.cos(angle); // X coordinate
+                    const y = (index + 1) * radius * Math.sin(angle); // Y coordinate
+                    electron.style.left = `calc(50% + ${x}px)`;
+                    electron.style.top = `calc(50% + ${y}px)`;
+                    
+                    electronDistribution.appendChild(electron);
+                }
+            });
+        }
+
+        function checkInput() {
+            const userInput = document.getElementById('elementInput').value;
+            const sliderValue = document.getElementById('slider').value;
+            const correctAnswer = elements[sliderValue - 1].name;
+
+            const feedback = document.getElementById('feedback');
+            feedback.innerText = '';
+            if (userInput === correctAnswer) {
+                feedback.innerText = 'Correct!';
+                feedback.className = 'correct';
+                animateFeedback();
+            } else {
+                feedback.innerText = 'Incorrect, please try again.';
+                feedback.className = 'incorrect';
+            }
+        }
+
+        function animateFeedback() {
+            const feedback = document.getElementById('feedback');
+            feedback.style.transition = 'color 0.5s ease';
+            feedback.style.color = 'gold';
+            setTimeout(() => feedback.style.color = 'black', 500);
+        }
+
+        // Initialize to show the first element
+        updateElement();
+    </script>
+</body>
+</html>

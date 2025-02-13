@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Cell Drag and Drop Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            align-items: center; /* Vertical centering */
+            height: 100vh; /* Full viewport height */
+        }
+        #cellImage {
+            position: relative;
+            width: 300px; 
+            height: 400px; 
+            background-image: url('https://banner2.cleanpng.com/20240115/re/transparent-plant-cell-microscope-slide-plant-cell-clear-glass-microscope-slide-with-healthy-and-damaged-1710922363873.webp');
+            background-size: cover;
+            border: 1px solid #000;
+        }
+        .drop-zone {
+            width: 80px;
+            height: 30px;
+            border: 1px dashed #000;
+            position: absolute;
+            background-color: white; /* White background for drop zones */
+            border-radius: 5px; /* Rounded corners */
+            display: flex; /* Center content */
+            justify-content: center; /* Center content */
+            align-items: center; /* Center content */
+        }
+        #rightPanel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .draggable {
+            width: 100px;
+            height: 40px;
+            background-color: white; /* White background for draggable items */
+            border: 1px solid #000;
+            border-radius: 5px; /* Rounded corners */
+            margin: 5px;
+            cursor: move;
+            display: flex; /* Center content */
+            justify-content: center; /* Center content */
+            align-items: center; /* Center content */
+        }
+        .incorrect {
+            border: 2px solid red; /* Red border for incorrect placements */
+        }
+    </style>
+</head>
+<body>
+
+<div id="cellImage">
+    <div class="drop-zone" style="top: 70px; left: 20px;" data-name="cell wall"></div>
+    <div class="drop-zone" style="top: 150px; left: 90px;" data-name="chloroplast"></div>
+    <div class="drop-zone" style="top: 250px; left: 50px;" data-name="vacuole"></div>
+    <div class="drop-zone" style="top: 30px; left: 200px;" data-name="cell membrane"></div>
+    <div class="drop-zone" style="top: 320px; left: 30px;" data-name="cytoplasm"></div>
+</div>
+
+<div id="rightPanel">
+    <div class="draggable" draggable="true" data-name="cell wall">Cell Wall</div>
+    <div class="draggable" draggable="true" data-name="chloroplast">Chloroplast</div>
+    <div class="draggable" draggable="true" data-name="vacuole">Vacuole</div>
+    <div class="draggable" draggable="true" data-name="cell membrane">Cell Membrane</div>
+    <div class="draggable" draggable="true" data-name="cytoplasm">Cytoplasm</div>
+    <button id="confirmButton">Confirm</button>
+    <div id="message"></div>
+</div>
+
+<script>
+    const draggables = document.querySelectorAll('.draggable');
+    const dropZones = document.querySelectorAll('.drop-zone');
+    const confirmButton = document.getElementById('confirmButton');
+    const message = document.getElementById('message');
+
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', () => {
+            draggable.classList.add('dragging');
+        });
+
+        draggable.addEventListener('dragend', () => {
+            draggable.classList.remove('dragging');
+        });
+    });
+
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            const dragging = document.querySelector('.dragging');
+            zone.appendChild(dragging);
+        });
+    });
+
+    confirmButton.addEventListener('click', () => {
+        let correct = true;
+        dropZones.forEach(zone => {
+            const expectedName = zone.getAttribute('data-name');
+            const child = zone.querySelector('.draggable');
+
+            // Clear previous incorrect styling
+            zone.classList.remove('incorrect');
+
+            // Check if placed correctly
+            if (!child || child.getAttribute('data-name') !== expectedName) {
+                correct = false;
+                // Highlight the incorrect zone
+                zone.classList.add('incorrect');
+            }
+        });
+
+        if (correct) {
+            message.textContent = 'Congratulations! All parts are placed correctly!';
+            message.style.color = 'green';
+        } else {
+            message.textContent = 'Some parts are incorrectly placed, please check and try again!';
+            message.style.color = 'red';
+        }
+    });
+</script>
+
+</body>
+</html>

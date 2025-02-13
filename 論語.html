@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配對遊戲</title>
+    <style>
+        body {
+            font-family: '楷體', sans-serif;
+            font-size: 30pt;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            position: relative; /* 為煙花動畫提供相對定位 */
+        }
+        #question-area {
+            margin-right: 50px;
+        }
+        .stage {
+            display: flex;
+            flex-direction: column;
+        }
+        .question {
+            margin: 20px 0;
+            position: relative;
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            min-height: 70px;
+        }
+        .placeholder {
+            border: 2px dashed #000;
+            border-radius: 10px;
+            height: 50px;
+            margin-top: 10px;
+            line-height: 50px;
+            text-align: center;
+            overflow: visible; /* 修改為 visible，避免顯示省略號 */
+            white-space: pre-wrap; /* 允許換行 */
+            word-wrap: break-word; /* 防止長文本溢出 */
+        }
+        #box-area {
+            display: flex;
+            flex-direction: column;
+            width: 400px;
+        }
+        .box {
+            width: 100%;
+            height: 50px;
+            margin: 10px 0;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            text-align: center;
+            line-height: 50px;
+            cursor: move;
+            overflow: hidden;
+            white-space: nowrap; 
+            text-overflow: clip; /* 修改為 clip 以避免顯示省略號 */
+        }
+        #confirm-button, #reset-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 30pt;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 20px;
+            right: 20px; 
+        }
+        #reset-button {
+            background-color: #FF5722;
+            bottom: 80px; 
+        }
+        .incorrect {
+            border: 2px solid red;
+            background-color: #ffcccc;
+        }
+        /* 煙花效果的 CSS */
+        .firework {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 9999; /* 保證在其他元素上方 */
+            opacity: 0.8; /* 煙花的透明度 */
+        }
+        .firework div {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            transform: translate(-50%, -50%);
+            animation: explode 1s ease-in-out forwards;
+        }
+        @keyframes explode {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-200px) scale(2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="question-area">
+        <div id="stage-1" class="stage">
+            <div class="question">
+                論仁: 「不仁者，不可以久處約」，<div class="placeholder" data-answer="仁者安仁"></div>
+            </div>
+            <div class="question">
+                論仁: 「富與貴，是人之所欲也」，<div class="placeholder" data-answer="不以其道得之，不處也"></div>
+            </div>
+            <div class="question">
+                論仁: 「貧與賤，是人之所惡也」，<div class="placeholder" data-answer="不以其道得之，不去也"></div>
+            </div>
+            <div class="question">
+                論仁: 「君子去仁，惡乎成名？」，<div class="placeholder" data-answer="君子無終食之間違仁"></div>
+            </div>
+            <div class="question">
+                論仁: 「為仁由己，而由人乎哉？」，<div class="placeholder" data-answer="克己復禮為仁"></div>
+            </div>
+            <div class="question">
+                論仁: 「志士仁人，無求生以害仁」，<div class="placeholder" data-answer="有殺身以成仁"></div>
+            </div>
+        </div>
+        <div id="stage-2" class="stage" style="display: none;">
+            <div class="question">
+                孟懿子問孝: 「無違」，<div class="placeholder" data-answer="無違"></div>
+            </div>
+            <div class="question">
+                樊遲御，子告之: 「生事之以禮」，<div class="placeholder" data-answer="生事之以禮"></div>
+            </div>
+            <div class="question">
+                子游問孝: 「今之孝者，是謂能養」，<div class="placeholder" data-answer="不敬，何以別乎"></div>
+            </div>
+            <div class="question">
+                子曰: 「事父母幾諫，見志不從」，<div class="placeholder" data-answer="勞而不怨"></div>
+            </div>
+            <div class="question">
+                子曰: 「父母之年，不可不知也。」<div class="placeholder" data-answer="一則以喜，一則以懼"></div>
+            </div>
+            <div class="question">
+                子曰: 「死葬之以禮，祭之以禮。」<div class="placeholder" data-answer="死葬之以禮，祭之以禮"></div>
+            </div>
+        </div>
+        <div id="stage-3" class="stage" style="display: none;">
+            <div class="question">
+                論君子: 「君子不重則不威」，<div class="placeholder" data-answer="學則不固"></div>
+            </div>
+            <div class="question">
+                論君子: 「君子坦蕩蕩」，<div class="placeholder" data-answer="小人長戚戚"></div>
+            </div>
+            <div class="question">
+                論君子: 「志士仁人」，<div class="placeholder" data-answer="無求生以害仁"></div>
+            </div>
+            <div class="question">
+                論君子: 「君子成人之美」，<div class="placeholder" data-answer="不成人之惡"></div>
+            </div>
+            <div class="question">
+                論君子: 「君子求諸己」，<div class="placeholder" data-answer="小人求諸人"></div>
+            </div>
+            <div class="question">
+                論君子: 「君子恥其言而過其行」，<div class="placeholder" data-answer="君子義以為質"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="box-area">
+        <div id="boxes-stage-1">
+            <div class="box" draggable="true">仁者安仁</div>
+            <div class="box" draggable="true">不以其道得之，不處也</div>
+            <div class="box" draggable="true">不以其道得之，不去也</div>
+            <div class="box" draggable="true">君子無終食之間違仁</div>
+            <div class="box" draggable="true">克己復禮為仁</div>
+            <div class="box" draggable="true">有殺身以成仁</div>
+        </div>
+        <div id="boxes-stage-2" style="display: none;">
+            <div class="box" draggable="true">無違</div>
+            <div class="box" draggable="true">生事之以禮</div>
+            <div class="box" draggable="true">不敬，何以別乎</div>
+            <div class="box" draggable="true">勞而不怨</div>
+            <div class="box" draggable="true">一則以喜，一則以懼</div>
+            <div class="box" draggable="true">死葬之以禮，祭之以禮</div>
+        </div>
+        <div id="boxes-stage-3" style="display: none;">
+            <div class="box" draggable="true">學則不固</div>
+            <div class="box" draggable="true">小人長戚戚</div>
+            <div class="box" draggable="true">無求生以害仁</div>
+            <div class="box" draggable="true">不成人之惡</div>
+            <div class="box" draggable="true">小人求諸人</div>
+            <div class="box" draggable="true">君子義以為質</div>
+        </div>
+    </div>
+    
+    <button id="reset-button">重置</button>
+    <button id="confirm-button">確認</button>
+
+    <div class="firework" id="firework-effect" style="display: none;"></div> <!-- 煙花動畫容器 -->
+
+    <script>
+        let currentStage = 1;
+        updateBoxVisibility();
+        initializeAnswers();
+
+        // 添加拖放事件
+        document.querySelectorAll('.box').forEach(box => {
+            box.addEventListener('dragstart', dragStart);
+            box.addEventListener('dragend', dragEnd);
+        });
+
+        function dragStart(event) {
+            event.dataTransfer.setData('text/plain', event.target.innerHTML);
+            event.target.style.opacity = '0.5'; 
+        }
+
+        function dragEnd(event) {
+            event.target.style.opacity = '';
+        }
+
+        document.querySelectorAll('.placeholder').forEach(placeholder => {
+            placeholder.addEventListener('dragover', dragOver);
+            placeholder.addEventListener('drop', drop);
+        });
+
+        function dragOver(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            let data = event.dataTransfer.getData('text/plain');
+
+            if (event.target.innerHTML.trim() === '') {
+                event.target.innerHTML = data; 
+                event.target.classList.remove('incorrect');
+
+                let box = Array.from(document.querySelectorAll('.box')).find(b => b.innerHTML === data);
+                if (box) {
+                    box.style.display = 'none'; 
+                }
+            }
+        }
+
+        document.getElementById('confirm-button').addEventListener('click', function() {
+            let correct = true;
+            const placeholdersInStage = document.querySelectorAll(`#stage-${currentStage} .placeholder`);
+            
+            placeholdersInStage.forEach(placeholder => {
+                let correctAnswer = placeholder.getAttribute('data-answer');
+                if (placeholder.innerHTML.trim() !== correctAnswer) {
+                    correct = false;
+                    placeholder.classList.add("incorrect");
+                } else {
+                    placeholder.classList.remove("incorrect");
+                }
+            });
+
+            if (correct) {
+                if (currentStage === 3) {
+                    showFirework(); // 完成所有關卡後顯示煙花
+                }
+                alert('恭喜你！完成了這一關！');
+                currentStage++;
+                if (currentStage > 3) {
+                    alert('所有關卡已完成！');
+                    location.reload();
+                } else {
+                    document.querySelector(`#stage-${currentStage - 1}`).style.display = 'none';
+                    document.querySelector(`#stage-${currentStage}`).style.display = 'flex';
+                    updateBoxVisibility(); 
+                    initializeAnswers(); // 初始化新關卡答案
+                }
+            } else {
+                alert('有些配對不正確，請再試一次！');
+                placeholdersInStage.forEach(placeholder => {
+                    if (!placeholder.innerHTML.trim()) {
+                        placeholder.classList.remove("incorrect");
+                    }
+                });
+            }
+        });
+
+        document.getElementById('reset-button').addEventListener('click', function() {
+            resetStage();
+        });
+
+        function resetStage() {
+            const placeholdersInStage = document.querySelectorAll(`#stage-${currentStage} .placeholder`);
+            placeholdersInStage.forEach(placeholder => {
+                placeholder.innerHTML = '';
+                placeholder.classList.remove('incorrect');
+            });
+            const boxesInStage = document.querySelectorAll(`#boxes-stage-${currentStage} .box`);
+            boxesInStage.forEach(box => {
+                box.style.display = 'block'; 
+            });
+            initializeAnswers(); // 重置時也隨機答案
+        }
+
+        function updateBoxVisibility() {
+            document.querySelectorAll('.stage').forEach((stage, index) => {
+                if (index + 1 === currentStage) {
+                    document.querySelector(`#boxes-stage-${index + 1}`).style.display = 'block';
+                } else {
+                    document.querySelector(`#boxes-stage-${index + 1}`).style.display = 'none';
+                }
+            });
+        }
+
+        function initializeAnswers() {
+            const boxesInStage = document.querySelectorAll(`#boxes-stage-${currentStage} .box`);
+            const answers = Array.from(boxesInStage).map(box => box.innerHTML);
+
+            // 使用 Fisher-Yates 洗牌算法來隨機打亂答案
+            for (let i = answers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [answers[i], answers[j]] = [answers[j], answers[i]];
+            }
+
+            boxesInStage.forEach((box, index) => {
+                box.innerHTML = answers[index]; // 更新隨機打亂後的答案
+                box.style.display = 'block'; // 重新顯示所有方塊
+            });
+        }
+
+        function showFirework() {
+            const fireworkContainer = document.getElementById('firework-effect');
+            fireworkContainer.style.display = 'block';
+            fireworkContainer.innerHTML = ''; // 清空之前的煙花
+
+            for (let i = 0; i < 50; i++) { // 顯示 50 個煙花
+                const firework = document.createElement('div');
+                firework.style.left = Math.random() * window.innerWidth + 'px';
+                firework.style.bottom = Math.random() * window.innerHeight + 'px';
+                fireworkContainer.appendChild(firework);
+
+                // 添加隨機顏色
+                firework.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                
+                // 煙花動畫定時移除
+                setTimeout(() => {
+                    fireworkContainer.removeChild(firework);
+                }, 1000);
+            }
+
+            // 設置煙花顯示 5 秒後自動隱藏
+            setTimeout(() => {
+                fireworkContainer.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

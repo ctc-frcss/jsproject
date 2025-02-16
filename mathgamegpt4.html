@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    .game-container {
+      max-width: 600px;
+      width: 100%;
+      padding: 20px;
+      background: #ffffff;
+      color: #333;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .question {
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .choice {
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      background: #f9f9f9;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .choice:hover {
+      background: #2575fc;
+      color: #fff;
+      border-color: #6a11cb;
+      transform: scale(1.05);
+    }
+
+    .reward {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .reward img {
+      max-width: 100px;
+    }
+
+    .next-btn {
+      margin-top: 20px;
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      background: #6a11cb;
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .next-btn:hover {
+      background: #2575fc;
+    }
+
+    .final-reward {
+      text-align: center;
+    }
+
+    .final-reward img {
+      max-width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container" id="game">
+    <div id="game-content">
+      <h1>Welcome to the Math Game!</h1>
+      <button class="next-btn" id="start-game">Start Game</button>
+    </div>
+  </div>
+
+  <script>
+    // 定義10關的題目和答案
+    const topics = [
+      {
+        topic: "Algebra",
+        questions: [
+          { question: "Solve for x: 3x - 7 = 11", choices: ["6", "5", "4", "3"], correct: 0 },
+          { question: "Expand: (x + 2)(x - 3)", choices: ["x² - x - 6", "x² + 5x + 6", "x² - 6", "x² + 6"], correct: 0 },
+        ],
+      },
+      {
+        topic: "Probability",
+        questions: [
+          { question: "A coin is tossed twice. What is the probability of getting two heads?", choices: ["1/4", "1/3", "1/2", "1/6"], correct: 0 },
+          { question: "A die is rolled. What is the probability of rolling an even number?", choices: ["1/2", "1/3", "2/3", "1/6"], correct: 0 },
+        ],
+      },
+      {
+        topic: "Geometry",
+        questions: [
+          { question: "What is the sum of the interior angles of a hexagon?", choices: ["720°", "360°", "540°", "180°"], correct: 0 },
+          { question: "The area of a triangle is 24 cm², and the base is 8 cm. What is the height?", choices: ["6 cm", "3 cm", "4 cm", "8 cm"], correct: 0 },
+        ],
+      },
+      {
+        topic: "Statistics",
+        questions: [
+          { question: "What is the mode of the data set: {2, 4, 4, 6, 8}?", choices: ["4", "2", "6", "8"], correct: 0 },
+          { question: "What is the median of the data set: {1, 3, 5, 7, 9}?", choices: ["5", "3", "7", "9"], correct: 0 },
+        ],
+      },
+      {
+        topic: "Trigonometry",
+        questions: [
+          { question: "What is sin(30°)?", choices: ["1/2", "√3/2", "1", "0"], correct: 0 },
+          { question: "What is tan(45°)?", choices: ["1", "0", "√3", "1/2"], correct: 0 },
+        ],
+      },
+      {
+        topic: "Calculus",
+        questions: [
+          { question: "What is the derivative of x²?", choices: ["2x", "x", "x²", "1"], correct: 0 },
+          { question: "Find the integral of 2x dx.", choices: ["x² + C", "2x²", "x²", "2x² + C"], correct: 0 },
+        ],
+      },
+      {
+        topic: "Exponents",
+        questions: [
+          { question: "Simplify: (2³)(2²)", choices: ["2⁵", "2⁶", "2¹", "2⁷"], correct: 0 },
+          { question: "What is 5³?", choices: ["125", "25", "15", "75"], correct: 0 },
+        ],
+      },
+      {
+        topic: "Logarithms",
+        questions: [
+          { question: "What is log₂(8)?", choices: ["3", "2", "1", "4"], correct: 0 },
+          { question: "Simplify: log(10⁴)", choices: ["4", "10", "1", "100"], correct: 0 },
+        ],
+      },
+      {
+        topic: "Sequences",
+        questions: [
+          { question: "What is the 5th term in the sequence: 2, 4, 6, 8,...?", choices: ["10", "8", "12", "6"], correct: 0 },
+          { question: "What is the sum of the first 3 terms of the sequence: 3, 6, 9,...?", choices: ["18", "15", "12", "9"], correct: 0 },
+        ],
+      },
+      {
+        topic: "Functions",
+        questions: [
+          { question: "If f(x) = 2x + 1, find f(3).", choices: ["7", "6", "5", "4"], correct: 0 },
+          { question: "If g(x) = x², find g(4).", choices: ["16", "8", "4", "12"], correct: 0 },
+        ],
+      },
+    ];
+
+    let currentLevel = 0;
+    let currentQuestionIndex = 0;
+
+    const game = document.getElementById("game");
+    const gameContent = document.getElementById("game-content");
+
+    function renderQuestion() {
+      const level = topics[currentLevel];
+      const questionData = level.questions[currentQuestionIndex];
+      gameContent.innerHTML = `
+        <h2>${level.topic} - Question ${currentQuestionIndex + 1}/2</h2>
+        <p class="question">${questionData.question}</p>
+        <div class="choices">
+          ${questionData.choices
+            .map(
+              (choice, index) => `
+            <div class="choice" data-index="${index}">${choice}</div>
+          `
+            )
+            .join("")}
+        </div>
+      `;
+      document.querySelectorAll(".choice").forEach((choice) => {
+        choice.addEventListener("click", (e) => {
+          const selectedIndex = parseInt(e.currentTarget.dataset.index);
+          if (selectedIndex === questionData.correct) {
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= level.questions.length) {
+              currentLevel++;
+              currentQuestionIndex = 0;
+              showReward();
+            } else {
+              renderQuestion();
+            }
+          } else {
+            alert("Incorrect! Try again.");
+          }
+        });
+      });
+    }
+
+    function showReward() {
+      if (currentLevel >= topics.length) {
+        renderFinalReward();
+        return;
+      }
+      gameContent.innerHTML = `
+        <h2>Congrats! You've completed Level ${currentLevel}!</h2>
+        <div class="reward">
+          <img src="https://via.placeholder.com/50" alt="Level Reward">
+        </div>
+        <button class="next-btn" id="next-level">Next Level</button>
+      `;
+      document.getElementById("next-level").addEventListener("click", () => {
+        renderQuestion();
+      });
+    }
+
+    function renderFinalReward() {
+      gameContent.innerHTML = `
+        <h2>Congratulations! You've completed all levels!</h2>
+        <div class="final-reward">
+          <img src="https://via.placeholder.com/200" alt="Final Reward">
+        </div>
+      `;
+    }
+
+    document.getElementById("start-game").addEventListener("click", () => {
+      renderQuestion();
+    });
+  </script>
+</body>
+</html>

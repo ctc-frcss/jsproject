@@ -1,0 +1,509 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSE 中文科文言文閱讀理解練習</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5D5CDE',
+          }
+        }
+      },
+      darkMode: 'class',
+    }
+  </script>
+  <style>
+    /* 文言文段落樣式 */
+    .classical-text {
+      line-height: 2;
+      letter-spacing: 1px;
+    }
+    
+    /* 文言文直排樣式 */
+    .vertical-text {
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+    }
+    
+    /* 黑暗模式支持 */
+    .dark .dark\:bg-gray-900 {
+      background-color: #181818;
+    }
+    
+    /* 問題樣式 */
+    .question-box {
+      border-left: 4px solid #5D5CDE;
+    }
+    
+    /* 註釋樣式 */
+    .annotation {
+      position: relative;
+      display: inline;
+    }
+    
+    .annotation .tooltip {
+      visibility: hidden;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #f9fafb;
+      color: #1f2937;
+      border-radius: 0.25rem;
+      padding: 0.5rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+    }
+    
+    .dark .annotation .tooltip {
+      background-color: #374151;
+      color: #f9fafb;
+    }
+    
+    .annotation:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+  <!-- 檢測深色模式 -->
+  <script>
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+      if (event.matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    });
+  </script>
+
+  <div class="container mx-auto px-4 py-8">
+    <!-- 頁面標題 -->
+    <header class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-primary">DSE 中文科文言文閱讀理解練習</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">按照香港中學文憑考試格式設計</p>
+    </header>
+
+    <!-- 主要內容區 -->
+    <main id="app" class="max-w-4xl mx-auto">
+      <!-- 三個視圖: 開始頁面、考試頁面、結果頁面 -->
+      <div id="start-view" class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-bold mb-4">文言文閱讀理解練習</h2>
+        <p class="mb-4">此練習模擬香港中學文憑考試中文科的閱讀卷中的文言文部分。你將會:</p>
+        <ul class="list-disc list-inside mb-6 space-y-2">
+          <li>閱讀一篇文言文</li>
+          <li>回答與文章相關的多項選擇題和問答題</li>
+          <li>在限時內完成練習</li>
+          <li>獲得即時的評分和答案解析</li>
+        </ul>
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <label for="timer-select" class="block mb-1">選擇時限:</label>
+            <select id="timer-select" class="rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+              <option value="10">10 分鐘</option>
+              <option value="15" selected="">15 分鐘</option>
+              <option value="20">20 分鐘</option>
+              <option value="0">不限時</option>
+            </select>
+          </div>
+          <div>
+            <label for="text-direction" class="block mb-1">文本方向:</label>
+            <select id="text-direction" class="rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+              <option value="horizontal" selected="">橫向</option>
+              <option value="vertical">直排</option>
+            </select>
+          </div>
+        </div>
+        <button id="start-btn" class="w-full bg-primary hover:bg-opacity-90 text-white rounded-lg py-3 font-medium transition-colors duration-200">
+          開始練習
+        </button>
+      </div>
+
+      <!-- 考試頁面 -->
+      <div id="exam-view" class="hidden">
+        <!-- 計時器和進度 -->
+        <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 mb-6 flex justify-between items-center">
+          <div class="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span id="timer" class="text-lg font-semibold">15:00</span>
+          </div>
+          <button id="submit-btn" class="bg-primary hover:bg-opacity-90 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+            提交答案
+          </button>
+        </div>
+
+        <!-- 文言文區域 -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+          <h2 class="text-xl font-bold mb-4 text-center">閱讀以下文言文，然後回答問題。</h2>
+          
+          <div id="passage-horizontal" class="classical-text text-lg mb-6 leading-loose">
+            <p class="mb-4">
+              范巽夫者，臨潼里人也，<span class="annotation">以贏販為業<span class="tooltip">靠買賣維生</span></span>，家饒殷實。嘗<span class="annotation">挾貲<span class="tooltip">攜帶資本</span></span>入漢中，<span class="annotation">貿木材<span class="tooltip">購買木材</span></span>於氐人。既而負重歸，<span class="annotation">道阻修<span class="tooltip">路途難行且遠</span></span>，乃躬率僮僕十餘人<span class="annotation">拓路<span class="tooltip">修路</span></span>，其行且開，歷時數月，方至漢中與斜穀交界之地。
+            </p>
+            <p class="mb-4">
+              逢山中一叟，<span class="annotation">方持<span class="tooltip">正拿着</span></span>斧與柯，坐於路旁。見巽夫經過，揄揚斧而言曰：「僕聞子開此道有年，今道雖通，而行旅鮮至，<span class="annotation">未嘗獲利<span class="tooltip">從未有收益</span></span>，何其勞而無功也？」巽夫止步，謂之曰：「吾嘗患漢中、京師相距千里，商旅往來，非跋涉不能達，以至物價兩地相差十倍，吾所以闢道，實欲<span class="annotation">利行者<span class="tooltip">為往來的商旅提供便利</span></span>，兼以取利。雖道已通而人未知，子姑待之，<span class="annotation">時至自當物暢其流<span class="tooltip">時機到了自然就會物資流通</span></span>。」
+            </p>
+            <p class="mb-4">
+              又五年，此道大通，<span class="annotation">商旅絡繹不絕<span class="tooltip">商人旅客川流不息</span></span>，兩地物價漸趨平衡，行旅亦獲厚利。巽夫卜居道旁，<span class="annotation">置店招客<span class="tooltip">開設客棧招待客人</span></span>，財日進，遂成富家。<span class="annotation">里人慕之<span class="tooltip">鄉里人景仰他</span></span>，爭效其事，而莫能及。老叟後嘗過而歎曰：「吾聞『<span class="annotation">明者遠見於未萌<span class="tooltip">聰明的人能在事情尚未萌發前就看到未來</span></span>』，子之謀，非<span class="annotation">尋常人<span class="tooltip">普通人</span></span>所及也。」
+            </p>
+          </div>
+
+          <div id="passage-vertical" class="classical-text text-lg mb-6 vertical-text h-96 mx-auto hidden overflow-auto">
+            <p class="mb-4">
+              范巽夫者，臨潼里人也，<span class="annotation">以贏販為業<span class="tooltip">靠買賣維生</span></span>，家饒殷實。嘗<span class="annotation">挾貲<span class="tooltip">攜帶資本</span></span>入漢中，<span class="annotation">貿木材<span class="tooltip">購買木材</span></span>於氐人。既而負重歸，<span class="annotation">道阻修<span class="tooltip">路途難行且遠</span></span>，乃躬率僮僕十餘人<span class="annotation">拓路<span class="tooltip">修路</span></span>，其行且開，歷時數月，方至漢中與斜穀交界之地。
+            </p>
+            <p class="mb-4">
+              逢山中一叟，<span class="annotation">方持<span class="tooltip">正拿着</span></span>斧與柯，坐於路旁。見巽夫經過，揄揚斧而言曰：「僕聞子開此道有年，今道雖通，而行旅鮮至，<span class="annotation">未嘗獲利<span class="tooltip">從未有收益</span></span>，何其勞而無功也？」巽夫止步，謂之曰：「吾嘗患漢中、京師相距千里，商旅往來，非跋涉不能達，以至物價兩地相差十倍，吾所以闢道，實欲<span class="annotation">利行者<span class="tooltip">為往來的商旅提供便利</span></span>，兼以取利。雖道已通而人未知，子姑待之，<span class="annotation">時至自當物暢其流<span class="tooltip">時機到了自然就會物資流通</span></span>。」
+            </p>
+            <p class="mb-4">
+              又五年，此道大通，<span class="annotation">商旅絡繹不絕<span class="tooltip">商人旅客川流不息</span></span>，兩地物價漸趨平衡，行旅亦獲厚利。巽夫卜居道旁，<span class="annotation">置店招客<span class="tooltip">開設客棧招待客人</span></span>，財日進，遂成富家。<span class="annotation">里人慕之<span class="tooltip">鄉里人景仰他</span></span>，爭效其事，而莫能及。老叟後嘗過而歎曰：「吾聞『<span class="annotation">明者遠見於未萌<span class="tooltip">聰明的人能在事情尚未萌發前就看到未來</span></span>』，子之謀，非<span class="annotation">尋常人<span class="tooltip">普通人</span></span>所及也。」
+            </p>
+          </div>
+        </div>
+
+        <!-- 問題區域 -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+          <h2 class="text-xl font-bold mb-6">閱讀理解問題</h2>
+          
+          <!-- 選擇題 -->
+          <div class="space-y-8">
+            <div class="question-box pl-4 py-2">
+              <p class="font-semibold mb-3">1. 根據文中所述，范巽夫開闢道路的主要目的是什麼？</p>
+              <div class="space-y-2 ml-4">
+                <div class="flex items-center">
+                  <input type="radio" id="q1-a" name="q1" value="A" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q1-a" class="ml-2 block">A. 純粹為了方便自己運木材</label>
+                </div>
+                <div class="flex items-center">
+                  <input type="radio" id="q1-b" name="q1" value="B" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q1-b" class="ml-2 block">B. 為了便利商旅往來，同時也為自己謀利</label>
+                </div>
+                <div class="flex items-center">
+                  <input type="radio" id="q1-c" name="q1" value="C" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q1-c" class="ml-2 block">C. 完全是為了造福鄉里，不求回報</label>
+                </div>
+                <div class="flex items-center">
+                  <input type="radio" id="q1-d" name="q1" value="D" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q1-d" class="ml-2 block">D. 為了獲取官府的賞賜</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-box pl-4 py-2">
+              <p class="font-semibold mb-3">2. 老叟初次與范巽夫對話時的態度最接近：</p>
+              <div class="space-y-2 ml-4">
+                <div class="flex items-center">
+                  <input type="radio" id="q2-a" name="q2" value="A" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q2-a" class="ml-2 block">A. 欣賞和讚歎</label>
+                </div>
+                <div class="flex items-center">
+                  <input type="radio" id="q2-b" name="q2" value="B" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q2-b" class="ml-2 block">B. 質疑和嘲諷</label>
+                </div>
+                <div class="flex items-center">
+                  <input type="radio" id="q2-c" name="q2" value="C" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q2-c" class="ml-2 block">C. 憤怒和反對</label>
+                </div>
+                <div class="flex items-center">
+                  <input type="radio" id="q2-d" name="q2" value="D" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q2-d" class="ml-2 block">D. 中立和好奇</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="question-box pl-4 py-2">
+              <p class="font-semibold mb-3">3.「時至自當物暢其流」中，「物」指的是：</p>
+              <div class="space-y-2 ml-4">
+                <div class="flex items-center">
+                  <input type="radio" id="q3-a" name="q3" value="A" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q3-a" class="ml-2 block">A. 人的思想</label>
+                </div>
+                <div class="flex items-center">
+                  <input type="radio" id="q3-b" name="q3" value="B" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q3-b" class="ml-2 block">B. 商品和貨物</label>
+                </div>
+                <div class="flex items-center">
+                  <input type="radio" id="q3-c" name="q3" value="C" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q3-c" class="ml-2 block">C. 水流和河道</label>
+                </div>
+                <div class="flex items-center">
+                  <input type="radio" id="q3-d" name="q3" value="D" class="h-4 w-4 text-primary focus:ring-primary border-gray-300">
+                  <label for="q3-d" class="ml-2 block">D. 天氣和季節</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 問答題 -->
+            <div class="question-box pl-4 py-2">
+              <p class="font-semibold mb-3">4. 文中「明者遠見於未萌」一句用來形容范巽夫有什麼特質？請結合全文，談談范巽夫的遠見如何體現在他的行動上？（6分）</p>
+              <textarea id="q4-answer" rows="4" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 text-base" placeholder="在此作答..."></textarea>
+            </div>
+
+            <div class="question-box pl-4 py-2">
+              <p class="font-semibold mb-3">5. 試分析文中「里人慕之，爭效其事，而莫能及」一句所反映的現象及其成因。（6分）</p>
+              <textarea id="q5-answer" rows="4" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 text-base" placeholder="在此作答..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 結果頁面 -->
+      <div id="result-view" class="hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+          <h2 class="text-2xl font-bold mb-4 text-center">測驗結果</h2>
+          <div class="flex justify-center mb-6">
+            <div class="text-center">
+              <div id="score-display" class="text-5xl font-bold text-primary mb-2">0/20</div>
+              <p id="time-used" class="text-gray-600 dark:text-gray-400">用時: 00:00</p>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <h3 class="text-xl font-semibold">答案與解析</h3>
+            
+            <!-- 選擇題答案 -->
+            <div class="border-t border-b border-gray-200 dark:border-gray-700 py-4">
+              <div class="mb-4">
+                <p class="font-medium">1. 根據文中所述，范巽夫開闢道路的主要目的是什麼？</p>
+                <p class="text-green-600 dark:text-green-400 font-semibold mt-1">正確答案: B. 為了便利商旅往來，同時也為自己謀利</p>
+                <div id="q1-feedback" class="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <p>解析: 文中范巽夫明確表示「吾所以闢道，實欲利行者，兼以取利」，說明他開闢道路既是為了方便商旅往來，同時也考慮到自己的利益。</p>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <p class="font-medium">2. 老叟初次與范巽夫對話時的態度最接近：</p>
+                <p class="text-green-600 dark:text-green-400 font-semibold mt-1">正確答案: B. 質疑和嘲諷</p>
+                <div id="q2-feedback" class="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <p>解析: 老叟說「今道雖通，而行旅鮮至，未嘗獲利，何其勞而無功也」，對范巽夫開闢道路卻沒有得到回報表示質疑，語氣中帶有嘲諷。</p>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <p class="font-medium">3.「時至自當物暢其流」中，「物」指的是：</p>
+                <p class="text-green-600 dark:text-green-400 font-semibold mt-1">正確答案: B. 商品和貨物</p>
+                <div id="q3-feedback" class="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                  <p>解析: 結合上下文，范巽夫說「吾嘗患漢中、京師相距千里，商旅往來，非跋涉不能達，以至物價兩地相差十倍」，可見「物」指的是商品和貨物，他相信時機成熟時，商品會自然流通。</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 問答題參考答案 -->
+            <div>
+              <div class="mb-6">
+                <p class="font-medium">4. 文中「明者遠見於未萌」一句用來形容范巽夫有什麼特質？請結合全文，談談范巽夫的遠見如何體現在他的行動上？（6分）</p>
+                <div id="q4-user-answer" class="mt-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-3">
+                  <p class="text-gray-500 dark:text-gray-400">你的答案將顯示在這裡</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <p class="font-semibold mb-1 text-green-700 dark:text-green-400">參考答案:</p>
+                  <p>這句話形容范巽夫具有前瞻性和遠見卓識的特質，能夠在事情尚未發生前就預見未來的發展。</p>
+                  <p class="mt-2">范巽夫的遠見體現在：</p>
+                  <ol class="list-decimal list-inside mt-1 ml-2 space-y-1">
+                    <li>他看到了漢中與京師之間商貿往來的潛力，發現兩地物價差距大（「物價兩地相差十倍」），預見了開通道路後的商業價值。</li>
+                    <li>即使初期「道雖通，而行旅鮮至」，他也堅信「時至自當物暢其流」，表現出長遠規劃的眼光。</li>
+                    <li>他不僅開闢道路，還「卜居道旁，置店招客」，進一步利用商旅往來的機會發展自己的事業。</li>
+                    <li>他的遠見使他能忍受短期無回報的投入，最終獲得了成功（「財日進，遂成富家」）。</li>
+                  </ol>
+                </div>
+              </div>
+              
+              <div>
+                <p class="font-medium">5. 試分析文中「里人慕之，爭效其事，而莫能及」一句所反映的現象及其成因。（6分）</p>
+                <div id="q5-user-answer" class="mt-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-3">
+                  <p class="text-gray-500 dark:text-gray-400">你的答案將顯示在這裡</p>
+                </div>
+                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <p class="font-semibold mb-1 text-green-700 dark:text-green-400">參考答案:</p>
+                  <p>這句話反映的現象是范巽夫成功後，鄉里人紛紛模仿他的做法但都無法取得相同的成功。</p>
+                  <p class="mt-2">成因分析：</p>
+                  <ol class="list-decimal list-inside mt-1 ml-2 space-y-1">
+                    <li>范巽夫有獨到的眼光和前瞻性思維（「明者遠見於未萌」、「子之謀，非尋常人所及也」），而其他人僅是盲目模仿表面行為，缺乏真正的洞察力。</li>
+                    <li>范巽夫願意承擔風險和前期投入（「躬率僮僕十餘人拓路」、「歷時數月」），具有堅持不懈的毅力，而他人可能缺乏這種長期投入的耐心。</li>
+                    <li>他把握住了最佳的時機和位置（作為第一個開路者和第一個在路旁設店的人），享有先發優勢，而後來者失去了這種優勢。</li>
+                    <li>他不只是模仿他人，而是基於對市場需求的理解創造性地解決問題，這種創新能力是其他人所不具備的。</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-8 text-center">
+            <button id="retry-btn" class="bg-primary hover:bg-opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+              再次練習
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="text-center mt-12 text-gray-600 dark:text-gray-400 text-sm">
+      <p>© 2023 DSE 中文科文言文閱讀理解練習 | 模擬香港中學文憑考試</p>
+    </footer>
+  </div>
+
+  <script>
+    // 視圖管理
+    const startView = document.getElementById('start-view');
+    const examView = document.getElementById('exam-view');
+    const resultView = document.getElementById('result-view');
+    
+    // 按鈕
+    const startBtn = document.getElementById('start-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const retryBtn = document.getElementById('retry-btn');
+    
+    // 文本方向選擇
+    const textDirectionSelect = document.getElementById('text-direction');
+    const passageHorizontal = document.getElementById('passage-horizontal');
+    const passageVertical = document.getElementById('passage-vertical');
+    
+    // 計時器相關
+    const timerSelect = document.getElementById('timer-select');
+    const timerDisplay = document.getElementById('timer');
+    let countdownInterval;
+    let timeLeft = 0;
+    let startTime = 0;
+    
+    // 設置文本方向
+    textDirectionSelect.addEventListener('change', function() {
+      if (this.value === 'vertical') {
+        passageHorizontal.classList.add('hidden');
+        passageVertical.classList.remove('hidden');
+      } else {
+        passageVertical.classList.add('hidden');
+        passageHorizontal.classList.remove('hidden');
+      }
+    });
+    
+    // 開始練習
+    startBtn.addEventListener('click', function() {
+      startView.classList.add('hidden');
+      examView.classList.remove('hidden');
+      
+      // 設置選擇的時間限制
+      const minutes = parseInt(timerSelect.value);
+      startTime = Date.now();
+      
+      if (minutes > 0) {
+        timeLeft = minutes * 60;
+        updateTimerDisplay();
+        startTimer();
+      } else {
+        timerDisplay.textContent = "不限時";
+      }
+    });
+    
+    // 計時器功能
+    function startTimer() {
+      countdownInterval = setInterval(function() {
+        timeLeft--;
+        updateTimerDisplay();
+        
+        if (timeLeft <= 0) {
+          clearInterval(countdownInterval);
+          submitAnswers();
+        }
+      }, 1000);
+    }
+    
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      // 時間少於一分鐘時顯示紅色
+      if (timeLeft < 60) {
+        timerDisplay.classList.add('text-red-600', 'dark:text-red-400');
+      }
+    }
+    
+    // 提交答案
+    submitBtn.addEventListener('click', submitAnswers);
+    
+    function submitAnswers() {
+      clearInterval(countdownInterval);
+      examView.classList.add('hidden');
+      resultView.classList.remove('hidden');
+      
+      // 計算得分
+      let score = 0;
+      
+      // 檢查選擇題答案
+      if (document.querySelector('input[name="q1"]:checked')?.value === 'B') score += 2;
+      if (document.querySelector('input[name="q2"]:checked')?.value === 'B') score += 2;
+      if (document.querySelector('input[name="q3"]:checked')?.value === 'B') score += 2;
+      
+      // 顯示用戶的問答題答案
+      document.getElementById('q4-user-answer').textContent = document.getElementById('q4-answer').value || '未作答';
+      document.getElementById('q5-user-answer').textContent = document.getElementById('q5-answer').value || '未作答';
+      
+      // 假設問答題有人工評分，這裡只顯示總分
+      document.getElementById('score-display').textContent = `${score}/6`;
+      
+      // 顯示用時
+      const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+      const minutesTaken = Math.floor(timeTaken / 60);
+      const secondsTaken = timeTaken % 60;
+      document.getElementById('time-used').textContent = `用時: ${minutesTaken.toString().padStart(2, '0')}:${secondsTaken.toString().padStart(2, '0')}`;
+      
+      // 顯示答案反饋
+      const q1Selected = document.querySelector('input[name="q1"]:checked')?.value || '未選擇';
+      const q2Selected = document.querySelector('input[name="q2"]:checked')?.value || '未選擇';
+      const q3Selected = document.querySelector('input[name="q3"]:checked')?.value || '未選擇';
+      
+      const q1Feedback = document.getElementById('q1-feedback');
+      const q2Feedback = document.getElementById('q2-feedback');
+      const q3Feedback = document.getElementById('q3-feedback');
+      
+      if (q1Selected === 'B') {
+        q1Feedback.innerHTML = '<p class="text-green-600 dark:text-green-400">✓ 正確！</p>' + q1Feedback.innerHTML;
+      } else {
+        q1Feedback.innerHTML = `<p class="text-red-600 dark:text-red-400">✗ 你選擇了: ${q1Selected}</p>` + q1Feedback.innerHTML;
+      }
+      
+      if (q2Selected === 'B') {
+        q2Feedback.innerHTML = '<p class="text-green-600 dark:text-green-400">✓ 正確！</p>' + q2Feedback.innerHTML;
+      } else {
+        q2Feedback.innerHTML = `<p class="text-red-600 dark:text-red-400">✗ 你選擇了: ${q2Selected}</p>` + q2Feedback.innerHTML;
+      }
+      
+      if (q3Selected === 'B') {
+        q3Feedback.innerHTML = '<p class="text-green-600 dark:text-green-400">✓ 正確！</p>' + q3Feedback.innerHTML;
+      } else {
+        q3Feedback.innerHTML = `<p class="text-red-600 dark:text-red-400">✗ 你選擇了: ${q3Selected}</p>` + q3Feedback.innerHTML;
+      }
+    }
+    
+    // 重新開始練習
+    retryBtn.addEventListener('click', function() {
+      // 重置所有表單
+      document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.checked = false;
+      });
+      document.getElementById('q4-answer').value = '';
+      document.getElementById('q5-answer').value = '';
+      
+      // 重置計時器顯示
+      timerDisplay.classList.remove('text-red-600', 'dark:text-red-400');
+      
+      // 返回開始頁面
+      resultView.classList.add('hidden');
+      startView.classList.remove('hidden');
+    });
+  </script>
+
+
+</body></html>

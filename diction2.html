@@ -1,0 +1,638 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Dictation Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+        
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4ECDC4;
+            --accent-color: #FFD166;
+            --correct-color: #06D6A0;
+            --wrong-color: #EF476F;
+            --bg-color: #f9f7f7;
+            --text-color: #112D4E;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Comic Neue', cursive;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 1.5rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            margin: 0.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .start-button {
+            background-color: var(--accent-color);
+            font-size: 1.3rem;
+            padding: 1rem 2rem;
+        }
+
+        .word-display {
+            margin: 1.5rem 0;
+            min-height: 60px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 0.1rem;
+        }
+
+        .current-letter {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            margin: 0 5px;
+            border-radius: 8px;
+            background-color: #e9ecef;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .letter-key {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f1f3f5;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            color: var(--text-color);
+            border: 2px solid #ddd;
+        }
+
+        .letter-key:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            gap: 0.5rem;
+        }
+
+        .speed-controls {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+
+        .speed-button {
+            background-color: #6c757d;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin: 0 0.3rem;
+        }
+
+        .speed-button.active {
+            background-color: var(--primary-color);
+        }
+
+        .progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .score {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .hint-container {
+            font-size: 1.3rem;
+            min-height: 50px;
+            margin: 1rem 0;
+            color: #6c757d;
+        }
+
+        .hint-text {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .result-container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .result-score {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin: 1.5rem 0;
+        }
+
+        .result-rate {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--secondary-color);
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .celebration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
+        }
+
+        .celebration.active {
+            display: block;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(500px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-30px);
+            }
+            60% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .bounce-animation {
+            animation: bounce 1s;
+        }
+
+        .instructions {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+
+        .letter-spacing {
+            letter-spacing: 3px;
+        }
+
+        .speak-button {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+        }
+
+        .hint-button {
+            background-color: #6c757d;
+        }
+
+        .refresh-button {
+            background-color: var(--primary-color);
+        }
+
+        .check-button {
+            background-color: var(--correct-color);
+            padding: 0.8rem 2rem;
+        }
+
+        .delete-button {
+            background-color: var(--wrong-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <h1>Vocabulary Dictation Game</h1>
+            <div class="instructions">
+                <h2>Instructions:</h2>
+                <ul>
+                    <li>Listen to the word and spell it correctly</li>
+                    <li>Click on the letters to form the word</li>
+                    <li>Use the "Hint" button if you need help</li>
+                    <li>Use the "Delete" button to correct mistakes</li>
+                    <li>You can adjust the speech speed</li>
+                    <li>10 random words will be selected</li>
+                </ul>
+            </div>
+            <button id="start-button" class="start-button">Start Game</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="progress">
+                <div>Question: <span id="current-question">1</span>/10</div>
+                <div>Score: <span id="score" class="score">0</span></div>
+            </div>
+            
+            <button id="speak-button" class="speak-button">
+                <span id="speak-icon">🔊</span> Hear The Word
+            </button>
+            
+            <div class="speed-controls">
+                <button class="speed-button" data-speed="0.5">0.5x</button>
+                <button class="speed-button" data-speed="0.8">0.8x</button>
+                <button class="speed-button active" data-speed="1">1x</button>
+            </div>
+
+            <div class="hint-container">
+                <div id="hint-text" class="hint-text"></div>
+            </div>
+
+            <div id="word-display" class="word-display letter-spacing"></div>
+
+            <div id="keyboard" class="keyboard"></div>
+
+            <div class="controls">
+                <button id="hint-button" class="hint-button">Hint</button>
+                <button id="refresh-button" class="refresh-button">Refresh</button>
+                <button id="delete-button" class="delete-button">Delete</button>
+                <button id="check-button" class="check-button">Check</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="screen">
+            <h1>Quiz Completed!</h1>
+            <div class="result-score">Score: <span id="final-score">0</span>/10</div>
+            <div class="result-rate">Correct Rate: <span id="correct-rate">0</span>%</div>
+            <button id="play-again-button" class="start-button">Play Again</button>
+        </div>
+
+        <div id="celebration" class="celebration"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game variables
+            const vocabularyBank = [
+                'circle', 'triangle', 'diamond', 'oval', 'square', 'rectangle', 'heart', 'star'
+            ];
+            
+            let gameWords = [];
+            let currentWordIndex = 0;
+            let currentWord = '';
+            let userInput = '';
+            let score = 0;
+            let hintCount = 0;
+            let currentSpeechRate = 1;
+            let isHintUsed = false;
+            
+            // DOM Elements
+            const startScreen = document.getElementById('start-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const resultScreen = document.getElementById('result-screen');
+            
+            const startButton = document.getElementById('start-button');
+            const speakButton = document.getElementById('speak-button');
+            const hintButton = document.getElementById('hint-button');
+            const refreshButton = document.getElementById('refresh-button');
+            const deleteButton = document.getElementById('delete-button');
+            const checkButton = document.getElementById('check-button');
+            const playAgainButton = document.getElementById('play-again-button');
+            
+            const currentQuestionElement = document.getElementById('current-question');
+            const scoreElement = document.getElementById('score');
+            const finalScoreElement = document.getElementById('final-score');
+            const correctRateElement = document.getElementById('correct-rate');
+            const wordDisplay = document.getElementById('word-display');
+            const keyboard = document.getElementById('keyboard');
+            const hintText = document.getElementById('hint-text');
+            const speedButtons = document.querySelectorAll('.speed-button');
+            const celebration = document.getElementById('celebration');
+            
+            // Initialize speech synthesis
+            const synth = window.speechSynthesis;
+            
+            // Functions
+            function initGame() {
+                // Reset game variables
+                gameWords = getRandomWords(vocabularyBank, 10);
+                currentWordIndex = 0;
+                score = 0;
+                
+                // Update UI
+                scoreElement.textContent = score;
+                currentQuestionElement.textContent = currentWordIndex + 1;
+                
+                // Load first word
+                loadWord();
+                
+                // Show game screen
+                startScreen.classList.remove('active');
+                resultScreen.classList.remove('active');
+                gameScreen.classList.add('active');
+            }
+            
+            function getRandomWords(wordList, count) {
+                const shuffled = [...wordList].sort(() => 0.5 - Math.random());
+                return shuffled.slice(0, count);
+            }
+            
+            function loadWord() {
+                currentWord = gameWords[currentWordIndex];
+                userInput = '';
+                hintCount = 0;
+                isHintUsed = false;
+                
+                // Clear the display
+                updateWordDisplay();
+                
+                // Clear hint
+                hintText.textContent = '';
+                
+                // Generate keyboard
+                generateKeyboard();
+                
+                // Speak the word
+                speakWord(currentWord);
+            }
+            
+            function updateWordDisplay() {
+                wordDisplay.innerHTML = '';
+                
+                for (let i = 0; i < currentWord.length; i++) {
+                    const letterSpan = document.createElement('span');
+                    letterSpan.classList.add('current-letter');
+                    
+                    if (i < userInput.length) {
+                        letterSpan.textContent = userInput[i];
+                    }
+                    
+                    wordDisplay.appendChild(letterSpan);
+                }
+            }
+            
+            function generateKeyboard() {
+                keyboard.innerHTML = '';
+                
+                // Create a random set of letters that includes all the letters in the current word
+                let allLetters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+                let wordLetters = currentWord.split('');
+                
+                // Shuffle the non-word letters
+                let remainingLetters = allLetters.filter(letter => !wordLetters.includes(letter));
+                remainingLetters = remainingLetters.sort(() => 0.5 - Math.random());
+                
+                // Determine how many additional letters to show (maximum total of 8 letters)
+                let maxLetters = Math.min(8, currentWord.length + 4);
+                let additionalLettersCount = maxLetters - currentWord.length;
+                
+                // Get random additional letters
+                let additionalLetters = remainingLetters.slice(0, additionalLettersCount);
+                
+                // Combine word letters and additional letters and shuffle
+                let displayLetters = [...wordLetters, ...additionalLetters].sort(() => 0.5 - Math.random());
+                
+                // Create letter buttons
+                displayLetters.forEach(letter => {
+                    const letterButton = document.createElement('div');
+                    letterButton.classList.add('letter-key');
+                    letterButton.textContent = letter;
+                    
+                    letterButton.addEventListener('click', function() {
+                        if (userInput.length < currentWord.length) {
+                            userInput += letter;
+                            updateWordDisplay();
+                        }
+                    });
+                    
+                    keyboard.appendChild(letterButton);
+                });
+            }
+            
+            function speakWord(word) {
+                if (synth.speaking) {
+                    synth.cancel();
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-GB'; // UK English
+                utterance.rate = currentSpeechRate;
+                synth.speak(utterance);
+            }
+            
+            function showHint() {
+                hintCount++;
+                isHintUsed = true;
+                
+                if (hintCount <= currentWord.length) {
+                    hintText.textContent = currentWord.substring(0, hintCount);
+                }
+            }
+            
+            function resetWord() {
+                userInput = '';
+                updateWordDisplay();
+            }
+            
+            function checkAnswer() {
+                if (userInput.toLowerCase() === currentWord.toLowerCase()) {
+                    // Correct answer
+                    if (!isHintUsed) {
+                        score++;
+                        scoreElement.textContent = score;
+                    }
+                    
+                    // Celebrate if correct
+                    celebrate();
+                    
+                    // Move to next word or end game
+                    setTimeout(() => {
+                        currentWordIndex++;
+                        
+                        if (currentWordIndex < gameWords.length) {
+                            currentQuestionElement.textContent = currentWordIndex + 1;
+                            loadWord();
+                        } else {
+                            endGame();
+                        }
+                    }, 1500);
+                } else {
+                    // Wrong answer - shake the display
+                    wordDisplay.classList.add('bounce-animation');
+                    setTimeout(() => {
+                        wordDisplay.classList.remove('bounce-animation');
+                    }, 1000);
+                }
+            }
+            
+            function celebrate() {
+                // Create confetti
+                celebration.innerHTML = '';
+                
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.classList.add('confetti');
+                    
+                    // Random position, color, size, and animation duration
+                    const left = Math.random() * 100;
+                    const size = Math.random() * 10 + 5;
+                    const duration = Math.random() * 3 + 2;
+                    const delay = Math.random() * 0.5;
+                    
+                    confetti.style.left = `${left}%`;
+                    confetti.style.width = `${size}px`;
+                    confetti.style.height = `${size}px`;
+                    confetti.style.backgroundColor = getRandomColor();
+                    confetti.style.animation = `fall ${duration}s linear ${delay}s forwards`;
+                    
+                    celebration.appendChild(confetti);
+                }
+                
+                celebration.classList.add('active');
+                
+                setTimeout(() => {
+                    celebration.classList.remove('active');
+                }, 3000);
+            }
+            
+            function getRandomColor() {
+                const colors = ['#FF6B6B', '#4ECDC4', '#FFD166', '#06D6A0', '#118AB2', '#073B4C', '#7209B7'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            function endGame() {
+                // Calculate score and correct rate
+                finalScoreElement.textContent = score;
+                const correctRate = Math.round((score / gameWords.length) * 100);
+                correctRateElement.textContent = correctRate;
+                
+                // Show result screen
+                gameScreen.classList.remove('active');
+                resultScreen.classList.add('active');
+            }
+            
+            // Event Listeners
+            startButton.addEventListener('click', initGame);
+            playAgainButton.addEventListener('click', initGame);
+            
+            speakButton.addEventListener('click', function() {
+                speakWord(currentWord);
+            });
+            
+            hintButton.addEventListener('click', showHint);
+            
+            refreshButton.addEventListener('click', resetWord);
+            
+            deleteButton.addEventListener('click', function() {
+                if (userInput.length > 0) {
+                    userInput = userInput.slice(0, -1);
+                    updateWordDisplay();
+                }
+            });
+            
+            checkButton.addEventListener('click', checkAnswer);
+            
+            // Speech rate controls
+            speedButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Update UI
+                    speedButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Set speech rate
+                    currentSpeechRate = parseFloat(this.getAttribute('data-speed'));
+                });
+            });
+        });
+    </script>
+
+
+</body></html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Set Decoder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #181818;
+                --text-color: #ffffff;
+                --primary-color: #5D5CDE;
+                --input-bg: #2d2d2d;
+                --result-success: #4ade80;
+                --result-error: #f87171;
+            }
+        }
+        
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #ffffff;
+                --text-color: #333333;
+                --primary-color: #5D5CDE;
+                --input-bg: #f3f4f6;
+                --result-success: #10b981;
+                --result-error: #ef4444;
+            }
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center pt-8 px-4">
+    <div class="w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-6 text-center">Number Set Decoder</h1>
+        
+        <div class="bg-opacity-10 bg-gray-200 dark:bg-gray-700 p-6 rounded-lg shadow-md">
+            <p class="mb-4">Enter a set of numbers separated by commas (e.g., 01,32,89):</p>
+            
+            <div class="mb-4">
+                <input type="text" id="numberInput" class="w-full px-4 py-2 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary-500" style="background-color: var(--input-bg); color: var(--text-color);" placeholder="Example: 01,32,89">
+            </div>
+            
+            <button id="decodeButton" class="w-full py-2 px-4 rounded-md text-white transition duration-200 hover:bg-opacity-90 mb-4" style="background-color: var(--primary-color);">
+                Decode
+            </button>
+            
+            <div class="mt-6 text-center">
+                <p class="text-lg font-semibold mb-2">Result:</p>
+                <div id="result" class="py-3 px-4 rounded-md text-xl font-bold flex items-center justify-center min-h-16">
+                    Enter a number set to decode
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mappings = {
+                "01,32,89": "A",
+                "05,67,88": "B",
+                "12,45,90": "C",
+                "22,33,77": "D",
+                "03,54,61": "E",
+                "17,29,40": "F",
+                "02,76,81": "G",
+                "09,21,62": "H",
+                "04,38,99": "I",
+                "10,15,70": "J",
+                "24,35,55": "K",
+                "11,27,82": "L",
+                "19,30,64": "M",
+                "06,23,39": "N",
+                "41,56,68": "O",
+                "13,48,73": "P",
+                "07,44,83": "Q",
+                "20,25,92": "R",
+                "14,52,78": "S",
+                "26,34,57": "T",
+                "08,50,63": "U",
+                "18,72,85": "V",
+                "15,36,65": "W",
+                "31,42,74": "X",
+                "12,59,88": "Y",
+                "11,28,75": "Z",
+                "04,22,99": "a",
+                "13,24,36": "b",
+                "07,19,82": "c",
+                "20,41,56": "d",
+                "15,31,63": "e",
+                "09,49,76": "f",
+                "17,26,38": "g",
+                "01,18,45": "h",
+                "25,33,57": "i",
+                "14,60,70": "j",
+                "02,10,87": "k",
+                "11,39,93": "l",
+                "03,12,29": "m",
+                "05,44,80": "n",
+                "27,32,66": "o",
+                "08,15,54": "p",
+                "16,34,58": "q",
+                "37,46,64": "r",
+                "23,30,88": "s",
+                "40,42,68": "t",
+                "06,78,91": "u",
+                "45,47,62": "v",
+                "14,82,90": "w",
+                "11,55,84": "x",
+                "24,35,75": "y",
+                "19,20,72": "z",
+                "02,30,79": "0",
+                "08,21,66": "1",
+                "18,29,35": "2",
+                "14,26,48": "3",
+                "16,27,58": "4",
+                "23,34,59": "5",
+                "10,12,74": "6",
+                "25,37,60": "7",
+                "11,42,50": "8",
+                "03,80,91": "9"
+            };
+            
+            const numberInput = document.getElementById('numberInput');
+            const decodeButton = document.getElementById('decodeButton');
+            const resultElement = document.getElementById('result');
+            
+            // Function to normalize input
+            function normalizeInput(input) {
+                // Remove spaces and split by commas
+                const parts = input.replace(/\s+/g, '').split(',');
+                
+                // Pad numbers with leading zeros if needed
+                const paddedParts = parts.map(part => {
+                    const num = parseInt(part, 10);
+                    return num < 10 ? '0' + num : '' + num;
+                });
+                
+                // Sort numerically and join back with commas
+                return paddedParts.sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).join(',');
+            }
+            
+            function decodeInput() {
+                const input = numberInput.value.trim();
+                
+                if (!input) {
+                    showResult("Please enter a number set", "error");
+                    return;
+                }
+                
+                // Normalize the input for consistent format
+                const normalizedInput = normalizeInput(input);
+                
+                // Look up in our mappings
+                const result = mappings[normalizedInput];
+                
+                if (result) {
+                    showResult(result, "success");
+                } else {
+                    showResult("INVALID NUMBER SET", "error");
+                }
+            }
+            
+            function showResult(text, type) {
+                resultElement.textContent = text;
+                
+                if (type === "error") {
+                    resultElement.style.backgroundColor = "var(--result-error)";
+                    resultElement.style.color = "white";
+                } else {
+                    resultElement.style.backgroundColor = "var(--result-success)";
+                    resultElement.style.color = "white";
+                }
+            }
+            
+            // Add event listeners
+            decodeButton.addEventListener('click', decodeInput);
+            
+            numberInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    decodeInput();
+                }
+            });
+            
+            // Reset result box styling on input focus
+            numberInput.addEventListener('focus', function() {
+                resultElement.style.backgroundColor = "";
+                resultElement.style.color = "var(--text-color)";
+                if (resultElement.textContent === "INVALID NUMBER SET") {
+                    resultElement.textContent = "Enter a number set to decode";
+                }
+            });
+        });
+    </script>
+
+
+</body></html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Passcode Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Dark mode styles */
+        .dark input, .dark button, .dark .stage-container {
+            border-color: #444;
+        }
+        
+        .dark .hint {
+            color: #aaa;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300 p-4">
+    <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-all duration-300">
+        <h1 class="text-2xl font-bold text-center text-gray-800 dark:text-white mb-6">Secret Passcode Challenge</h1>
+        
+        <!-- Stage 1 -->
+        <div id="stage1" class="stage-container fade-in">
+            <div class="mb-4">
+                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">First Passcode</h2>
+                <p class="hint text-sm text-gray-500 dark:text-gray-400 mb-1">Hint: 553</p>
+                <input type="text" id="passcode1" placeholder="Enter first passcode" class="w-full px-4 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white">
+            </div>
+            <button id="submit1" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">Submit</button>
+            <p id="error1" class="text-red-500 text-sm mt-2 hidden">Incorrect passcode. Please try again.</p>
+        </div>
+        
+        <!-- Stage 2 -->
+        <div id="stage2" class="stage-container hidden">
+            <div class="mb-4">
+                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">Second Passcode</h2>
+                <p class="hint text-sm text-gray-500 dark:text-gray-400 mb-1">Hint: 2225</p>
+                <input type="text" id="passcode2" placeholder="Enter second passcode" class="w-full px-4 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white">
+            </div>
+            <button id="submit2" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">Submit</button>
+            <p id="error2" class="text-red-500 text-sm mt-2 hidden">Incorrect passcode. Please try again.</p>
+        </div>
+        
+        <!-- Stage 3 -->
+        <div id="stage3" class="stage-container hidden">
+            <div class="mb-4">
+                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-2">Final Passcode</h2>
+                <input type="text" id="passcode3" placeholder="Enter final passcode" class="w-full px-4 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white">
+            </div>
+            <button id="submit3" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-md transition-colors duration-300">Submit</button>
+            <p id="error3" class="text-red-500 text-sm mt-2 hidden">Incorrect passcode. Please try again.</p>
+        </div>
+        
+        <!-- Success Message -->
+        <div id="success" class="hidden text-center p-4">
+            <div class="animate-pulse mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Access Granted!</h2>
+            <div class="p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <p id="secret-message" class="text-lg font-medium text-gray-700 dark:text-gray-200">Test for Ch.10 will be held on next Wed</p>
+            </div>
+            <button id="restart" class="mt-6 px-4 py-2 bg-primary hover:bg-primary/90 text-white font-bold rounded-md transition-colors duration-300">Start Over</button>
+        </div>
+    </div>
+    
+    <script>
+        // Check for dark mode preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+        
+        // Passcode definitions
+        const passcodes = [
+            "JeSus lOveS You",
+            "No M2 Hw T0day",
+            "BuT"
+        ];
+        
+        // DOM elements
+        const stages = [
+            document.getElementById('stage1'),
+            document.getElementById('stage2'),
+            document.getElementById('stage3'),
+            document.getElementById('success')
+        ];
+        
+        const passcodeInputs = [
+            document.getElementById('passcode1'),
+            document.getElementById('passcode2'),
+            document.getElementById('passcode3')
+        ];
+        
+        const submitButtons = [
+            document.getElementById('submit1'),
+            document.getElementById('submit2'),
+            document.getElementById('submit3')
+        ];
+        
+        const errorMessages = [
+            document.getElementById('error1'),
+            document.getElementById('error2'),
+            document.getElementById('error3')
+        ];
+        
+        const restartButton = document.getElementById('restart');
+        
+        // Event listeners for submit buttons
+        submitButtons.forEach((button, index) => {
+            button.addEventListener('click', () => checkPasscode(index));
+        });
+        
+        // Event listeners for inputs (enter key)
+        passcodeInputs.forEach((input, index) => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkPasscode(index);
+                }
+            });
+            
+            // Clear error when typing
+            input.addEventListener('input', () => {
+                errorMessages[index].classList.add('hidden');
+                input.classList.remove('shake');
+            });
+        });
+        
+        // Restart button
+        restartButton.addEventListener('click', () => {
+            stages.forEach((stage, index) => {
+                if (index === 0) {
+                    stage.classList.remove('hidden');
+                    stage.classList.add('fade-in');
+                } else {
+                    stage.classList.add('hidden');
+                }
+            });
+            
+            passcodeInputs.forEach(input => {
+                input.value = '';
+            });
+            
+            errorMessages.forEach(error => {
+                error.classList.add('hidden');
+            });
+        });
+        
+        // Check passcode function
+        function checkPasscode(stageIndex) {
+            const input = passcodeInputs[stageIndex];
+            const errorMsg = errorMessages[stageIndex];
+            
+            if (input.value === passcodes[stageIndex]) {
+                // Correct passcode
+                stages[stageIndex].classList.add('hidden');
+                stages[stageIndex + 1].classList.remove('hidden');
+                stages[stageIndex + 1].classList.add('fade-in');
+            } else {
+                // Incorrect passcode
+                errorMsg.classList.remove('hidden');
+                input.classList.add('shake');
+                
+                // Remove shake animation after it completes
+                setTimeout(() => {
+                    input.classList.remove('shake');
+                }, 500);
+            }
+        }
+    </script>
+
+
+</body></html>
